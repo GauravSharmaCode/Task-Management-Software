@@ -1,0 +1,23 @@
+@echo off
+echo Starting microservices...
+docker-compose up -d
+
+echo Waiting for services to start...
+timeout /t 10
+
+echo Running migrations for users service...
+docker-compose exec users-service python manage.py migrate
+
+echo Running migrations for tasks service...
+docker-compose exec tasks-service python manage.py migrate
+
+echo Running migrations for notifications service...
+docker-compose exec notifications-service python manage.py migrate
+
+echo Creating superuser...
+docker-compose exec users-service python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', 'admin@test.com', 'admin123', role='admin')"
+
+echo Running API tests...
+python test_apis.py
+
+pause
