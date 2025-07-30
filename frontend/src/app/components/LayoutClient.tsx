@@ -1,17 +1,16 @@
 "use client";
 import { usePathname } from "next/navigation";
 import AppHeader from "@/app/components/AppHeader";
-import NotificationsPanel from "@/app/components/NotificationsPanel";
 import AuthGuard from "@/app/components/AuthGuard";
+import { AuthProvider } from "@/core/AuthContext";
 
 export default function LayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAuthPage = pathname.startsWith("/auth");
   return (
-    <>
+    <AuthProvider>
       {!isAuthPage && <AppHeader />}
-      {!isAuthPage && <NotificationsPanel />}
       <AuthGuard>{children}</AuthGuard>
-    </>
+    </AuthProvider>
   );
 }

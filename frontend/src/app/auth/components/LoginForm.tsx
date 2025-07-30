@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "@/core/api";
+import { useAuth } from "@/core/AuthContext";
 
 export default function LoginForm() {
   const [username, setUsername] = useState("");
@@ -9,6 +10,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const { setAuth } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,7 +19,7 @@ export default function LoginForm() {
     try {
       const res = await login({ username, password });
       if (res.data && res.data.token) {
-        localStorage.setItem("token", res.data.token);
+        setAuth(res.data.user, res.data.token);
         router.push("/tasks");
       } else {
         setError("No token received");

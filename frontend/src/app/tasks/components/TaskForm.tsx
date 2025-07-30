@@ -4,6 +4,7 @@ import { getUsers } from "@/core/users";
 
 export default function TaskForm({ initial, onSave, onCancel }: any) {
   const [title, setTitle] = useState(initial?.title || "");
+  const [description, setDescription] = useState(initial?.description || "");
   const [priority, setPriority] = useState(initial?.priority || "medium");
   const [status, setStatus] = useState(initial?.status || "todo");
   const [dueDate, setDueDate] = useState(initial?.due_date || "");
@@ -22,7 +23,16 @@ export default function TaskForm({ initial, onSave, onCancel }: any) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ ...initial, title, priority, status, due_date: dueDate, assigned_user: assignedUser });
+    const taskData = {
+      ...initial,
+      title,
+      description,
+      priority,
+      status,
+      due_date: dueDate,
+      assigned_user: assignedUser ? parseInt(assignedUser) : null
+    };
+    onSave(taskData);
   };
 
   return (
@@ -33,6 +43,13 @@ export default function TaskForm({ initial, onSave, onCancel }: any) {
         placeholder="Title"
         className="border border-gray-500 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
         required
+      />
+      <textarea
+        value={description}
+        onChange={e => setDescription(e.target.value)}
+        placeholder="Description"
+        className="border border-gray-500 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 rounded px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
+        rows={3}
       />
       <select
         value={assignedUser}

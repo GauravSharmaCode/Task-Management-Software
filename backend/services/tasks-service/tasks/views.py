@@ -32,18 +32,32 @@ class TaskViewSet(TaskPermissionMixin, viewsets.ModelViewSet):
         return queryset.order_by('-created_at')
     
     def perform_create(self, serializer):
-        task = serializer.save()
+        user_data = getattr(self.request, 'user_data', {})
+        # For regular users, auto-assign task to themselves
+        if user_data.get('role') != 'admin':
+            task = serializer.save(assigned_user=user_data.get('id'))
+        else:
+            # Admins can assign to anyone or leave unassigned
+            task = serializer.save()
         self._broadcast_task_update('task_created', task)
         
-    def perform_update(self, serializer):
-        if not self.check_task_permission(serializer.instance):
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not self.check_task_permission(instance):
             return Response({'error': 'Permission denied'}, status=403)
+        return super().update(request, *args, **kwargs)
+    
+    def perform_update(self, serializer):
         task = serializer.save()
         self._broadcast_task_update('task_updated', task)
         
-    def perform_destroy(self, instance):
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
         if not self.check_task_permission(instance):
             return Response({'error': 'Permission denied'}, status=403)
+        return super().destroy(request, *args, **kwargs)
+        
+    def perform_destroy(self, instance):
         self._broadcast_task_update('task_deleted', instance)
         instance.delete()
     

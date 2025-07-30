@@ -58,9 +58,11 @@ services:
     build: ./backend/services/notifications-service
     depends_on:
       - notifications-db
+      - redis
     environment:
       - DEBUG=True
       - DB_HOST=notifications-db
+      - REDIS_HOST=redis
       - USERS_SERVICE_URL=http://users-service:8001
     volumes:
       - ./backend/services/notifications-service:/app
