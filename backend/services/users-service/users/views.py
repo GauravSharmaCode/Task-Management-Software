@@ -42,13 +42,13 @@ def logout(request):
 def verify_token(request):
     if 'Authorization' not in request.headers:
         return Response({'message': 'No token provided'}, status=status.HTTP_401_UNAUTHORIZED)
-    return Response(UserSerializer(request.user).data)
+    return Response(UserSerializer(request.user).data, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 @admin_required
 def list_users(request):
     users = User.objects.all()
-    return Response(UserSerializer(users, many=True).data)
+    return Response(UserSerializer(users, many=True).data, status=status.HTTP_200_OK)
 
 @api_view(['PUT'])
 @admin_required
@@ -59,7 +59,19 @@ def update_user_role(request, user_id):
         if role in ['admin', 'user']:
             user.role = role
             user.save()
-            return Response(UserSerializer(user).data)
+            return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
         return Response({'error': 'Invalid role'}, status=400)
+    except User.DoesNotExist:
+        return Response({'error': 'User not found'}, status=404)
+    
+@api_view(['DELETE'])
+@admin_required
+def delete_user(request, user_id):
+    try:
+        user = User.objects.get(id=user_id)
+        instance = user
+        instance.is_active = False  # Soft delete
+        instance.save()
+        return Response({'message': 'User deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
     except User.DoesNotExist:
         return Response({'error': 'User not found'}, status=404)

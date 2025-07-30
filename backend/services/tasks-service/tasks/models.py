@@ -19,8 +19,10 @@ class Task(models.Model):
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='todo')
     due_date = models.DateTimeField(null=True, blank=True)
     assigned_user = models.IntegerField()
+    isDeleted = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
     
     class Meta:
         indexes = [

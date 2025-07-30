@@ -11,15 +11,13 @@ class TaskViewSet(TaskPermissionMixin, viewsets.ModelViewSet):
     serializer_class = TaskSerializer
     
     def get_queryset(self):
-        queryset = Task.objects.all()
+        queryset = Task.objects.filter(isDeleted=0)
         queryset = self.filter_user_tasks(queryset)
-        
         # Filtering
         due_date = self.request.query_params.get('due_date')
         priority = self.request.query_params.get('priority')
         assigned_user = self.request.query_params.get('assigned_user')
         status_filter = self.request.query_params.get('status')
-        
         if due_date:
             queryset = queryset.filter(due_date__date=due_date)
         if priority:
@@ -28,7 +26,6 @@ class TaskViewSet(TaskPermissionMixin, viewsets.ModelViewSet):
             queryset = queryset.filter(assigned_user=int(assigned_user))
         if status_filter:
             queryset = queryset.filter(status=status_filter)
-            
         return queryset.order_by('-created_at')
     
     def perform_create(self, serializer):
@@ -55,11 +52,11 @@ class TaskViewSet(TaskPermissionMixin, viewsets.ModelViewSet):
         instance = self.get_object()
         if not self.check_task_permission(instance):
             return Response({'error': 'Permission denied'}, status=403)
-        return super().destroy(request, *args, **kwargs)
-        
-    def perform_destroy(self, instance):
+        # Soft delete: set a flag instead of deleting
+        instance.isDeleted = 1
+        instance.save()
         self._broadcast_task_update('task_deleted', instance)
-        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
     
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
