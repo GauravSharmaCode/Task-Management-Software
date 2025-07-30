@@ -1,207 +1,431 @@
 # Task Management System
 
-A real-time task management application with **microservices architecture**, role-based permissions, advanced filtering, and WebSocket notifications.
+A modern, full-stack task management application built with **microservices architecture**, featuring real-time notifications, role-based permissions, and a responsive React frontend.
 
-## Architecture
+## 🚀 Features
 
-- **🏗️ Microservices:** Independent containerized services
-- **🌐 API Gateway:** Nginx-based request routing
-- **🔐 Authentication:** Token-based with inter-service communication
-- **📊 Logging:** Comprehensive DEBUG-level logging
-- **🔄 Real-time:** WebSocket support via Django Channels
+- **📋 Task Management:** Create, update, delete, and organize tasks
+- **👥 User Management:** Role-based access control (Admin/User)
+- **🔔 Real-time Notifications:** Instant updates for task changes
+- **🎯 Advanced Filtering:** Filter tasks by status, priority, due date, and assignee
+- **📱 Responsive UI:** Modern React frontend with dark mode support
+- **🏗️ Microservices:** Scalable, independent service architecture
+- **🔐 Secure Authentication:** Token-based authentication system
 
-## Tech Stack
+## 🏛️ Architecture
 
-- **Backend:** Django REST Framework (Microservices)
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Frontend      │    │   API Gateway    │    │  Microservices  │
+│   (React)       │◄──►│    (Nginx)       │◄──►│                 │
+│   Port: 3000    │    │   Port: 8000     │    │  Users: 8001    │
+└─────────────────┘    └──────────────────┘    │  Tasks: 8002    │
+                                                │  Notifications  │
+┌─────────────────┐    ┌──────────────────┐    │  Port: 8003     │
+│   Databases     │    │      Cache       │    └─────────────────┘
+│                 │    │                  │
+│  Users DB       │    │     Redis        │
+│  Tasks DB       │    │   (WebSocket)    │
+│  Notifications  │    │                  │
+│  (PostgreSQL)   │    │                  │
+└─────────────────┘    └──────────────────┘
+```
+
+## 🛠️ Tech Stack
+
+### Backend
+- **Framework:** Django REST Framework
+- **Architecture:** Microservices
 - **Database:** PostgreSQL (3 separate instances)
-- **Cache/WebSocket:** Redis + Django Channels
-- **Gateway:** Nginx
+- **Cache:** Redis
+- **WebSocket:** Django Channels
+- **API Gateway:** Nginx
 - **Containerization:** Docker & Docker Compose
 
-## Requirements
+### Frontend
+- **Framework:** Next.js 14 (React)
+- **Styling:** Tailwind CSS
+- **State Management:** React Context
+- **HTTP Client:** Axios
+- **TypeScript:** Full type safety
 
-- Docker & Docker Compose
-- Python 3.11+ (for local development)
+## 📋 Prerequisites
 
-## Quick Start
+- **Docker** (v20.0+)
+- **Docker Compose** (v2.0+)
+- **Node.js** (v18+) - for frontend development
+- **Python** (v3.11+) - for backend development
 
+## 🚀 Quick Start
+
+### 1. Clone the Repository
 ```bash
-# Clone and navigate to project
+git clone <repository-url>
 cd "Task Management Software"
+```
 
+### 2. Start Backend Services
+```bash
 # Start all microservices
 docker-compose up -d
 
+# Wait for services to be ready (30-60 seconds)
+docker-compose ps
+```
+
+### 3. Initialize Databases
+```bash
 # Run migrations for each service
 docker-compose exec users-service python manage.py migrate
-docker-compose exec tasks-service python manage.py makemigrations tasks && docker-compose exec tasks-service python manage.py migrate
-docker-compose exec notifications-service python manage.py makemigrations notifications && docker-compose exec notifications-service python manage.py migrate
+docker-compose exec tasks-service python manage.py makemigrations tasks
+docker-compose exec tasks-service python manage.py migrate
+docker-compose exec notifications-service python manage.py makemigrations notifications
+docker-compose exec notifications-service python manage.py migrate
+```
 
-# Create superuser
+### 4. Create Admin User
+```bash
 docker-compose exec users-service python manage.py createsuperuser
+```
 
-# Test the APIs
+### 5. Start Frontend (Optional)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### 6. Access the Application
+- **Frontend:** http://localhost:3000
+- **API Gateway:** http://localhost:8000/api/
+- **API Documentation:** [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
+
+### 7. Test the Setup
+```bash
+# Run API tests
 python test_apis.py
 ```
 
-API available at: `http://localhost:8000/api/`
-WebSocket: `ws://localhost:8000/ws/tasks/`
-
-## Microservices Architecture
+## 📁 Project Structure
 
 ```
-backend/
-├── services/
-│   ├── users-service/         # Authentication & user management (Port 8001)
-│   │   ├── users/
-│   │   ├── settings.py
-│   │   ├── manage.py
-│   │   └── Dockerfile
-│   ├── tasks-service/         # Task CRUD & WebSocket (Port 8002)
-│   │   ├── tasks/
-│   │   ├── settings.py
-│   │   ├── asgi.py
-│   │   └── Dockerfile
-│   └── notifications-service/ # Notification system (Port 8003)
-│       ├── notifications/
-│       ├── settings.py
-│       └── Dockerfile
-└── gateway/                   # Nginx API Gateway (Port 8000)
-    ├── nginx.conf
-    └── Dockerfile
-
-docker-compose.yml            # Orchestrates all services
+Task Management Software/
+├── backend/
+│   ├── services/
+│   │   ├── users-service/         # Authentication & user management
+│   │   │   ├── users/             # Django app
+│   │   │   ├── settings.py        # Service configuration
+│   │   │   ├── manage.py          # Django management
+│   │   │   └── Dockerfile         # Container definition
+│   │   ├── tasks-service/         # Task CRUD & business logic
+│   │   │   ├── tasks/             # Django app
+│   │   │   ├── settings.py        # Service configuration
+│   │   │   ├── asgi.py           # WebSocket support
+│   │   │   └── Dockerfile         # Container definition
+│   │   └── notifications-service/ # Notification system
+│   │       ├── notifications/     # Django app
+│   │       ├── settings.py        # Service configuration
+│   │       └── Dockerfile         # Container definition
+│   └── gateway/                   # Nginx API Gateway
+│       ├── nginx.conf            # Routing configuration
+│       └── Dockerfile            # Container definition
+├── frontend/                      # Next.js React application
+│   ├── src/
+│   │   ├── app/                  # App router pages
+│   │   ├── core/                 # Shared utilities
+│   │   └── components/           # Reusable components
+│   ├── package.json              # Dependencies
+│   └── tailwind.config.js        # Styling configuration
+├── docker-compose.yml             # Service orchestration
+├── README.md                      # This file
+└── API_DOCUMENTATION.md           # Complete API reference
 ```
 
-## API Endpoints
+## 🔗 API Overview
 
-All requests go through the **API Gateway** at `http://localhost:8000`
+All API requests go through the **API Gateway** at `http://localhost:8000/api/`
 
-### Authentication Service
+### 🔐 Authentication
+- `POST /auth/login/` - User login
+- `POST /auth/logout/` - User logout
+- `GET /auth/verify/` - Token verification
 
-- `POST /api/auth/login/` - Login (returns token)
-- `POST /api/auth/logout/` - Logout
-- `GET /api/auth/verify/` - Verify token (internal)
+### 📋 Tasks
+- `GET /tasks/` - List tasks (with filtering)
+- `POST /tasks/` - Create new task
+- `GET /tasks/{id}/` - Get specific task
+- `PUT /tasks/{id}/` - Update task
+- `PATCH /tasks/{id}/` - Partial update
+- `DELETE /tasks/{id}/` - Delete task
 
-### Tasks Service
+### 🔔 Notifications
+- `GET /notifications/` - List user notifications
+- `PATCH /notifications/{id}/` - Mark as read
 
-- `GET /api/tasks/` - List tasks (with filtering)
-- `POST /api/tasks/` - Create task
-- `GET /api/tasks/{id}/` - Get task
-- `PUT /api/tasks/{id}/` - Update task
-- `DELETE /api/tasks/{id}/` - Delete task
+**📖 Complete API Documentation:** [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
 
-**Query Parameters:**
+## 🗄️ Database Schema
 
-- `due_date` - Filter by due date (YYYY-MM-DD)
-- `priority` - Filter by priority (low/medium/high)
-- `status` - Filter by status (todo/in_progress/completed)
-- `assigned_user` - Filter by user ID
-
-### Notifications Service
-
-- `GET /api/notifications/` - List user notifications
-
-## Database Schema
-
-### Users Database (users_db)
-**User**
+### Users Service Database
 ```sql
-- id (Primary Key)
-- username (Unique)
-- email
-- role (admin/user)
-- password (hashed)
-- is_active, is_staff, is_superuser
-- date_joined, last_login
+User {
+  id: Primary Key
+  username: Unique String
+  email: String
+  role: Enum(admin, user)
+  password: Hashed String
+  is_active: Boolean
+  date_joined: DateTime
+  last_login: DateTime
+}
 ```
 
-### Tasks Database (tasks_db)
-**Task**
+### Tasks Service Database
 ```sql
-- id (Primary Key)
-- title
-- description
-- priority (low/medium/high)
-- status (todo/in_progress/completed)
-- due_date
-- assigned_user (Integer - User ID reference)
-- created_at
-- updated_at
+Task {
+  id: Primary Key
+  title: String(200)
+  description: Text
+  priority: Enum(low, medium, high)
+  status: Enum(todo, in_progress, completed)
+  due_date: Date
+  assigned_user: Integer (User ID)
+  created_at: DateTime
+  updated_at: DateTime
+}
 ```
 
-### Notifications Database (notifications_db)
-**Notification**
+### Notifications Service Database
 ```sql
-- id (Primary Key)
-- user (Integer - User ID reference)
-- message
-- is_read (Boolean)
-- created_at
+Notification {
+  id: Primary Key
+  user: Integer (User ID)
+  message: String(255)
+  is_read: Boolean
+  created_at: DateTime
+}
 ```
 
-## Authentication
+## 🔐 Authentication & Security
 
-Include token in headers:
-```
+### Token-Based Authentication
+```http
 Authorization: Token your_token_here
 ```
 
-### Inter-Service Authentication
-- **Users Service:** Issues and verifies tokens
-- **Tasks/Notifications Services:** Validate tokens via HTTP calls to users service
-- **Authentication Middleware:** Intercepts requests and adds user data to request context
+### Security Features
+- **🔒 Token Validation:** All services validate tokens with users service
+- **👤 Role-Based Access:** Admin and user roles with appropriate permissions
+- **🛡️ CORS Protection:** Configured for cross-origin requests
+- **🔍 Request Logging:** Comprehensive logging for debugging and monitoring
 
-## Features
+### Default Users
+After running migrations, create users via Django admin or API:
+- **Admin:** Full access to all resources
+- **User:** Access only to assigned tasks
 
-- **🔄 Auto-Notifications:** Tasks automatically create notifications via Django signals
-- **🔍 Advanced Filtering:** Filter tasks by priority, status, due date, assigned user
-- **🔐 Role-Based Access:** Admin and user roles with appropriate permissions
-- **📱 RESTful APIs:** Complete CRUD operations for all resources
-- **🐳 Containerized:** Full Docker setup with separate databases per service
+## ✨ Key Features
 
-## WebSocket Events (Planned)
+### Task Management
+- **📝 CRUD Operations:** Create, read, update, delete tasks
+- **🎯 Advanced Filtering:** Filter by status, priority, due date, assignee
+- **📊 Kanban Board:** Visual task organization
+- **📋 Table View:** Detailed task listing
 
-Connect to `/ws/tasks/` to receive:
-```json
+### Real-time Features
+- **🔔 Instant Notifications:** Real-time updates for task changes
+- **🔄 Auto-refresh:** Periodic polling for updates
+- **📱 Responsive UI:** Works on desktop and mobile
+
+### User Experience
+- **🌙 Dark Mode:** Built-in dark theme support
+- **🔐 Secure Login:** Token-based authentication
+- **👥 Role Management:** Admin and user permissions
+- **📱 Mobile Friendly:** Responsive design
+
+## 🔄 Real-time Updates
+
+### Current Implementation
+- **Polling:** Frontend polls for notifications every 30 seconds
+- **Auto-notifications:** Tasks automatically create notifications via Django signals
+- **Instant UI Updates:** Optimistic updates for better UX
+
+### WebSocket Support (Planned)
+```javascript
+// Future WebSocket implementation
+ws://localhost:8000/ws/notifications/
+
+// Event format
 {
-  "type": "task_update",
-  "action": "task_created|task_updated|task_deleted",
-  "task": { /* task data */ }
+  "type": "notification",
+  "notification": {
+    "id": 1,
+    "message": "Task updated",
+    "is_read": false
+  }
 }
 ```
-*Note: WebSocket implementation is planned for future release*
 
-## Service Communication
+## 🔄 Service Communication
 
-- **Gateway → Services:** HTTP proxy routing
-- **Tasks/Notifications → Users:** HTTP API calls for authentication
-- **Client → Gateway:** Single entry point for all requests
+```mermaid
+graph TD
+    A[Frontend] --> B[API Gateway]
+    B --> C[Users Service]
+    B --> D[Tasks Service]
+    B --> E[Notifications Service]
+    D --> C
+    E --> C
+    C --> F[Users DB]
+    D --> G[Tasks DB]
+    E --> H[Notifications DB]
+    D --> I[Redis]
+    E --> I
+```
 
-## Permissions
+- **🌐 API Gateway:** Single entry point, routes requests to appropriate services
+- **🔐 Authentication Flow:** Services validate tokens with users service
+- **📡 Inter-service Communication:** HTTP-based service-to-service calls
+- **💾 Database Isolation:** Each service has its own database
 
-- **Admin:** Full access to all tasks across all services
-- **User:** Access only to assigned tasks (enforced per service)
+## 👥 User Roles & Permissions
 
-## Logging
+| Feature | Admin | User |
+|---------|-------|------|
+| View all tasks | ✅ | ❌ |
+| View assigned tasks | ✅ | ✅ |
+| Create tasks | ✅ | ✅ |
+| Edit any task | ✅ | ❌ |
+| Edit assigned tasks | ✅ | ✅ |
+| Delete any task | ✅ | ❌ |
+| Delete assigned tasks | ✅ | ✅ |
+| View all notifications | ✅ | ❌ |
+| View own notifications | ✅ | ✅ |
+| User management | ✅ | ❌ |
 
-- **Level:** DEBUG (all log messages)
+## 📊 Monitoring & Logging
+
+### Logging Configuration
+- **Level:** DEBUG (development) / INFO (production)
 - **Format:** `{levelname} {asctime} {module} {message}`
-- **Output:** Console (visible in Docker logs)
-- **Services:** Individual logging per microservice
+- **Output:** Console (Docker logs)
+- **Coverage:** All microservices with individual log streams
 
-## Development
-
+### Viewing Logs
 ```bash
-# View logs for specific service
-docker-compose logs users-service
-docker-compose logs tasks-service
-docker-compose logs notifications-service
-docker-compose logs gateway
+# View all services
+docker-compose logs -f
 
-# Scale individual services
-docker-compose up --scale tasks-service=2
+# View specific service
+docker-compose logs -f users-service
+docker-compose logs -f tasks-service
+docker-compose logs -f notifications-service
+docker-compose logs -f gateway
+```
+
+## 🛠️ Development
+
+### Backend Development
+```bash
+# View service logs
+docker-compose logs -f <service-name>
 
 # Restart specific service
-docker-compose restart users-service
+docker-compose restart <service-name>
+
+# Scale services
+docker-compose up --scale tasks-service=2
+
+# Access service shell
+docker-compose exec users-service bash
+
+# Run Django commands
+docker-compose exec users-service python manage.py shell
 ```
+
+### Frontend Development
+```bash
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Run type checking
+npm run type-check
+```
+
+### Database Management
+```bash
+# Create migrations
+docker-compose exec <service> python manage.py makemigrations
+
+# Apply migrations
+docker-compose exec <service> python manage.py migrate
+
+# Access database
+docker-compose exec <db-service> psql -U postgres -d <database>
+```
+
+## 🚀 Deployment
+
+### Production Considerations
+- **Environment Variables:** Configure via `.env` files
+- **Database:** Use managed PostgreSQL service
+- **Redis:** Use managed Redis service
+- **SSL/TLS:** Configure HTTPS in production
+- **Monitoring:** Add application monitoring (e.g., Sentry)
+- **Backup:** Implement database backup strategy
+
+### Docker Production
+```bash
+# Build production images
+docker-compose -f docker-compose.prod.yml build
+
+# Start production services
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+## 🆘 Troubleshooting
+
+### Common Issues
+
+**Services not starting:**
+```bash
+# Check service status
+docker-compose ps
+
+# View error logs
+docker-compose logs <service-name>
+```
+
+**Database connection errors:**
+```bash
+# Restart database services
+docker-compose restart users-db tasks-db notifications-db
+
+# Check database logs
+docker-compose logs users-db
+```
+
+**Frontend not connecting to API:**
+- Verify API Gateway is running on port 8000
+- Check CORS configuration in backend services
+- Ensure environment variables are set correctly
+
+**Port conflicts:**
+```bash
+# Check what's using the ports
+netstat -tulpn | grep :8000
+
+# Stop conflicting services or change ports in docker-compose.yml
+```
+
+---
+
+**Built with ❤️ using Django, React, and Docker**

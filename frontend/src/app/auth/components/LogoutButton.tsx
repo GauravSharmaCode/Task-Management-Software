@@ -1,24 +1,16 @@
 "use client";
 import { logout } from "@/core/api";
 import { useState } from "react";
-import { useEffect } from "react";  
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/core/AuthContext";
 
 export default function LogoutButton({ onLoggedOut }: { onLoggedOut?: () => void } = {}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const { clearAuth } = useAuth();
 
-  // Watch for token removal (manual/localStorage clear)
-  useEffect(() => {
-    const checkToken = () => {
-      if (!localStorage.getItem("token") && onLoggedOut) {
-        onLoggedOut();
-      }
-    };
-    window.addEventListener("storage", checkToken);
-    return () => window.removeEventListener("storage", checkToken);
-  }, [onLoggedOut]);
+
 
   const handleLogout = async () => {
     setLoading(true);
@@ -30,7 +22,7 @@ export default function LogoutButton({ onLoggedOut }: { onLoggedOut?: () => void
       apiFailed = true;
       setError("Logout failed (server unreachable, logging out locally)");
     } finally {
-      localStorage.removeItem("token");
+      clearAuth();
       if (onLoggedOut) {
         console.log("LogoutButton: onLoggedOut called");
         onLoggedOut();

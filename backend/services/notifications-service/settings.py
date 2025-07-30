@@ -12,6 +12,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'rest_framework',
     'corsheaders',
+    'channels',
     'notifications',
 ]
 
@@ -40,6 +41,17 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 USERS_SERVICE_URL = config('USERS_SERVICE_URL', default='http://users-service:8001')
+
+# Channels
+ASGI_APPLICATION = 'asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [(config('REDIS_HOST', default='redis'), 6379)],
+        },
+    },
+}
 
 LOGGING = {
     'version': 1,
