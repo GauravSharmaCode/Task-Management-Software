@@ -3,12 +3,14 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .models import Notification
 from .serializers import NotificationSerializer
+from .permissions import NotificationPermissionMixin
 
-class NotificationViewSet(viewsets.ModelViewSet):
+class NotificationViewSet(NotificationPermissionMixin, viewsets.ModelViewSet):
     serializer_class = NotificationSerializer
     
     def get_queryset(self):
-        return Notification.objects.filter(user=self.request.user_data.get('id')).order_by('-created_at')
+        queryset = Notification.objects.all()
+        return self.filter_user_notifications(queryset).order_by('-created_at')
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
