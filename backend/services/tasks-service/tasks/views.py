@@ -5,15 +5,14 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from .models import Task
 from .serializers import TaskSerializer
+from .permissions import TaskPermissionMixin
 
-class TaskViewSet(viewsets.ModelViewSet):
+class TaskViewSet(TaskPermissionMixin, viewsets.ModelViewSet):
     serializer_class = TaskSerializer
     
     def get_queryset(self):
         queryset = Task.objects.all()
-        
-        if self.request.user_data.get('role') != 'admin':
-            queryset = queryset.filter(assigned_user=self.request.user_data.get('id'))
+        queryset = self.filter_user_tasks(queryset)
         
         # Filtering
         due_date = self.request.query_params.get('due_date')
@@ -37,12 +36,22 @@ class TaskViewSet(viewsets.ModelViewSet):
         self._broadcast_task_update('task_created', task)
         
     def perform_update(self, serializer):
+        if not self.check_task_permission(serializer.instance):
+            return Response({'error': 'Permission denied'}, status=403)
         task = serializer.save()
         self._broadcast_task_update('task_updated', task)
         
     def perform_destroy(self, instance):
+        if not self.check_task_permission(instance):
+            return Response({'error': 'Permission denied'}, status=403)
         self._broadcast_task_update('task_deleted', instance)
         instance.delete()
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not self.check_task_permission(instance):
+            return Response({'error': 'Permission denied'}, status=403)
+        return super().retrieve(request, *args, **kwargs)
         
     def _broadcast_task_update(self, action, task):
         channel_layer = get_channel_layer()
